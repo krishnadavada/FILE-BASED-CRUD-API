@@ -126,8 +126,8 @@ const server=http.createServer((req,res)=>{
 
                 async function getDataByID(){
                     try{
-                        const sdata=await readFile('data.json','utf-8')
-                        let ogetData=JSON.parse(sdata)
+                        const odata=await readFile('data.json','utf-8')
+                        let ogetData=JSON.parse(odata)
                         const ngetId=ogetData.findIndex((i)=>i.nid===nid)
                      
                         if(ngetId===-1){
@@ -311,6 +311,12 @@ const server=http.createServer((req,res)=>{
                         let odata=await readFile('data.json','utf-8')
                         let ooldData=JSON.parse(odata)
 
+                        const ngetId = ooldData.findIndex((i) => i.nid === nid)
+
+                        if (ngetId === -1) {
+                            return createResponse({ res, nstatusCode: 404, sisMessage: 'Data not found !' })
+                        }
+                        
                         const odeletedData=ooldData.filter((i)=>i.nid===nid)
                         ooldData=ooldData.filter((i)=>i.nid!==nid)
 
