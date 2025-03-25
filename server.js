@@ -5,12 +5,6 @@ const path=require('node:path')
 const { v4: uuidv4, validate: uuidValidate  } = require('uuid')
 const port=3000
 
-//use whole surl for css and js
-//make function for createResponse ({req,res,status,message,odata})
-
-//make function for read and write file (use promise)
-//convert switch case
-
 function date(){
     let nDate = new Date().getDate();
     let nMonth = new Date().getMonth() + 1;
@@ -68,7 +62,7 @@ const server=http.createServer((req,res)=>{
     
     const surl=req.url
     const smethod=req.method
-//item print
+
     emitter.on('itemCreated',(odata)=>{
         console.log({"message":"Item created successfully!","addedData":odata})
     })
