@@ -1,1 +1,28 @@
-[{"name":"chocolate","quantity":1,"price":100,"id":"8a6f144e-e787-4ff4-86c6-d46981c8a30a","createdAt":"20/3/2025","updatedAt":"20/3/2025"}]
+[
+  {
+    "sname": "shirt",
+    "nquantity": 1,
+    "nprice": 1000,
+    "sstatus": "not available",
+    "nid": "657fcae0-5835-45c8-9523-a7f3ca4848de",
+    "ncreatedAt": "25/3/2025",
+    "nupdatedAt": "25/3/2025"
+  },
+  {
+    "sname": "pencil",
+    "nquantity": "2",
+    "nprice": "23",
+    "sstatus": "available",
+    "nid": "bb1bb705-ba30-467b-9e96-992b82030ffd",
+    "ncreatedAt": "25/3/2025",
+    "nupdatedAt": "25/3/2025"
+  },
+  {
+    "sname": "pen",
+    "nquantity": 2,
+    "nprice": 100,
+    "nid": "72b1ca39-d6bc-4d9e-826f-f4d95763e027",
+    "ncreatedAt": "25/3/2025",
+    "nupdatedAt": "25/3/2025"
+  }
+]
