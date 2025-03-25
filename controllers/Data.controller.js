@@ -1,284 +1,248 @@
-const emitter=require('../utils/eventLog')
-const fs=require('node:fs')
-const { v4: uuidv4, validate: uuidValidate  } = require('uuid')
+const emitter = require('../utils/eventLog')
+const { readFile, writeFile } = require('node:fs').promises
+const { v4: uuidv4 } = require('uuid')
+const { date, createResponse } = require('../helpers/helper')
+const { validateId,validateData }=require('../Validators/validate')
 
-function date(){
-    let date = new Date().getDate();
-    let month = new Date().getMonth() + 1;
-    let year = new Date().getFullYear();
-    return `${date}/${month}/${year}`
-}
-
-function getAllData(req,res){
-    try{
-        fs.readFile('data.json',(err,data)=>{
-          if(err){
-              if(err.code==='ENOENT'){
-                  res.writeHead(404,{'content-type':'application/json'})
-                  res.end(JSON.stringify({'error':'File not found'}))
-                  return
-              }
-              else{
-                  res.writeHead(500,{'content-type':'application/json'})
-                  res.end(JSON.stringify({'error':'Internal server error'}))
-                  return
-              }
-          }
-          res.writeHead(200,{'content-type':'application/json'})
-          res.end(data,'utf-8')
-        })
-     }
-     catch(err){
+async function getAllData(req, res) {
+    try {
+        let odata = await readFile('data.json', 'utf-8')
+        odata = JSON.parse(odata)
+        odata = odata.filter((i) => i.sstatus === 'available')
+        return createResponse({ res, nstatusCode: 200, odata });
+    }
+    catch (err) {
         console.log(err.message)
-     }
-}
-
-function getDataById(req,res,id){
-    try{
-    
-        if(!uuidValidate(id)){
-            res.writeHead(400,{'content-type':'application/json'})
-            return res.end(JSON.stringify({'message':'Invalid id!'}))         
+        if (err) {
+            if (err.code === 'ENOENT') {
+                return createResponse({ res, nstatusCode: 404, bisError: 'File not found !' });
+            }
+            else {
+                return createResponse({ res, nstatusCode: 500, bisError: 'Internal server error !' });
+            }
         }
-            
-        fs.readFile('data.json',(err,data)=>{
-            if(err){
-                if(err.code==='ENOENT'){
-                    res.writeHead(404,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'File not found'}))
-                    return
-                }
-                else{
-                    res.writeHead(500,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'Internal server error'}))
-                    return
-                }
-            }
-    
-            let getData=Array.from(JSON.parse(data.toString('utf-8')))
-    
-            const getId=getData.findIndex((i)=>i.id===id)
-                     
-            if(getId===-1){
-                res.writeHead(404, { 'Content-Type': 'application/json' })
-                res.end(JSON.stringify({ message: 'User not found' }))
-                return
-            }
-    
-            getData=getData.filter((i)=>i.id===id)
-    
-            res.writeHead(200,{'content-type':'application/json'})
-            res.end(JSON.stringify(getData))
-        })
-    }
-    catch(err){
-        console.log(err.message)
     }
 }
 
-function addData(req,res){
-    try{
-        fs.readFile('data.json',(err,data)=>{
-            if(err){
-                if(err.code==='ENOENT'){
-                    res.writeHead(404,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'File not found'}))
-                    return
-                }
-                else{
-                    res.writeHead(500,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'Internal server error'}))
-                    return
-                }
+
+async function getDataById(req, res, nid) {
+    try {
+
+        if(!validateId(nid)){
+            return createResponse({ res, nstatusCode: 400, sisMessage: 'Invalid Id !' })
+        }
+    
+        const odata = await readFile('data.json', 'utf-8')
+        let ogetData = JSON.parse(odata)
+        const ngetId = ogetData.findIndex((i) => i.nid === nid)
+
+        if (ngetId === -1) {
+            return createResponse({ res, nstatusCode: 404, sisMessage: 'Data not found !' })
+        }
+
+        ogetData = ogetData.filter((i) => i.nid === nid)
+        return createResponse({ res, nstatusCode: 200, odata: ogetData })
+    }
+    catch (err) {
+        console.log(err.message)
+        if (err) {
+            if (err.code === 'ENOENT') {
+                return createResponse({ res, nstatusCode: 404, isError: 'File not found !' });
+            }
+            else {
+                return createResponse({ res, nstatusCode: 500, isError: 'Internal server error !' });
+            }
+        }
+    }
+}
+
+function addData(req, res) {
+    try {
+
+        let obody = ''
+
+        req.on('data', (chunk) => {
+            obody += chunk.toString()
+        })
+
+        req.on('end', async () => {
+
+            if (!obody.trim()) {
+                return createResponse({ res, nstatusCode: 400, sisMessage: 'No data provided !' });
             }
 
-            let oldData=Array.from(JSON.parse(data.toString('utf-8')))
+            try {
+                JSON.parse(obody)
+            }
+            catch (err) {
+                return createResponse({ res, nstatusCode: 400, sisMessage: 'Invalid JSON !' })
+            }
 
-            let body=''
+            try {
+                const odata = await readFile('data.json', 'utf-8')
+                let ooldData = JSON.parse(odata)
 
-            req.on('data',(chunk)=>{
-                body+=chunk.toString()
-            })
+                const onewData = JSON.parse(obody)
+                const odataExist = ooldData.some((i) => i.nid === onewData.nid)
 
-            req.on('end',()=>{
-
-                if(!body.trim()){
-                    res.writeHead(404,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'message':'Body not found!'}))
-                    return
-                }
-                const newData=JSON.parse(body)
-
-                const dataExist=oldData.some((i)=>i.id===newData.id)
-
-                if(dataExist){
-                    res.writeHead(400,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'message':'User already exist!'}))
-                    return
+                if (odataExist) {
+                    return createResponse({ res, nstatusCode: 400, sisMessage: 'Data already exist' })
                 }
 
-                if(newData.name===undefined || newData.quantity===undefined || newData.price===undefined || newData.status===undefined){
-                    res.writeHead(404,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'message':'Invalid data!'}))
+                const ovalidate=validateData(onewData)
+
+                if(!ovalidate.bisValid){
+                    return createResponse({ res, nstatusCode: 400, sisMessage: ovalidate.smessage })
                 }
 
-                newData.id=uuidv4()
-                newData.createdAt=date()
-                newData.updatedAt=date()
-      
-                oldData.push(newData)
+                onewData.nid = uuidv4()
+                onewData.ncreatedAt = date()
+                onewData.nupdatedAt = date()
 
-                fs.writeFile('data.json',JSON.stringify(oldData),(err)=>{
-                    if(err){
-                        if(err.code==='ENOENT'){
-                            res.writeHead(404,{'content-type':'application/json'})
-                            res.end(JSON.stringify({'error':'File not found'}))
-                            return
-                        }
-                        else{
-                            res.writeHead(500,{'content-type':'application/json'})
-                            res.end(JSON.stringify({'error':'Internal server error'}))
-                            return
-                        }
+                ooldData.push(onewData)
+
+                await writeFile('data.json', JSON.stringify(ooldData))
+                emitter.emit('itemCreated', onewData)
+                return createResponse({ res, nstatusCode: 201, sisMessage: 'Item created successfully' })
+            }
+            catch (err) {
+                console.log(err.message)
+                if (err) {
+                    if (err.code === 'ENOENT') {
+                        return createResponse({ res, nstatusCode: 404, isError: 'File not found' });
                     }
-                    emitter.emit('itemCreated')
-                    res.writeHead(201,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'message':'Data saved successfully'}))
-                })
-            })
+                    else {
+                        return createResponse({ res, nstatusCode: 500, isError: 'Internal server error' });
+                    }
+                }
+            }
         })
     }
-    catch(err){
+    catch (err) {
         console.log(err.message)
+        return createResponse({ res, nstatusCode: 500, isError: err.message });
     }
 }
 
-function updateData(req,res,id){
-    try{
+function updateData(req, res, nid) {
+    try {
 
-        if(!uuidValidate(id)){
-            res.writeHead(400,{'content-type':'application/json'})
-            return res.end(JSON.stringify({'message':'Invalid id!'}))         
+        if(!validateId(nid)){
+            return createResponse({ res, nstatusCode: 400, sisMessage: 'Invalid Id !' })
         }
         
-        fs.readFile('data.json',(err,data)=>{
-            if(err){
-                if(err.code==='ENOENT'){
-                    res.writeHead(404,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'File not found'}))
-                    return
-                }
-                else{
-                    res.writeHead(500,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'Internal server error'}))
-                    return
-                }
+        let obody = ''
+
+        req.on('data', (chunk) => {
+            obody += chunk.toString()
+        })
+
+        req.on('end', async () => {
+
+            if (!obody.trim()) {
+                return createResponse({ res, nstatusCode: 400, sisMessage: 'No data provided !' });
             }
-  
-            let oldData=Array.from(JSON.parse(data.toString('utf-8')))
-    
-            let body=''
-  
-            req.on('data',(chunk)=>{
-                body+=chunk.toString()
-            })
-  
-            req.on('end',()=>{
-  
-                if(!body.trim()){
-                    res.writeHead(404,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'message':'Body not found!'}))
-                    return
-                }  
-                const newData=JSON.parse(body)
-  
-                const getId=oldData.findIndex((i)=>i.id===id)
-               
-                if(getId===-1){
-                    res.writeHead(404, { 'Content-Type': 'application/json' })
-                    res.end(JSON.stringify({ message: 'User not found' }))
-                    return
+
+            try {
+                JSON.parse(obody)
+            }
+            catch (err) {
+                return createResponse({ res, nstatusCode: 400, sisMessage: 'Invalid JSON !' })
+            }
+
+            try {
+
+                let odata = await readFile('data.json', 'utf-8')
+                let ooldData = JSON.parse(odata)
+
+                try {
+                    JSON.parse(obody)
+                }
+                catch (err) {
+                    return createResponse({ res, nstatusCode: 400, sisMessage: 'Invalid JSON !' })
                 }
 
-                newData.id=id
-                newData.createdAt=oldData[getId].createdAt
-                newData.updatedAt=date()
-              
-                oldData[getId]={...oldData[getId],...newData}
-  
-                fs.writeFile('data.json',JSON.stringify(oldData),(err)=>{
-                    if(err){
-                        if(err.code==='ENOENT'){
-                            res.writeHead(404,{'content-type':'application/json'})
-                            res.end(JSON.stringify({'error':'File not found'}))
-                            retuen
-                        }
-                        else{
-                            res.writeHead(500,{'content-type':'application/json'})
-                            res.end(JSON.stringify({'error':'Internal server error'}))
-                            return
-                        }
+                const onewData = JSON.parse(obody)
+
+                const ngetId = ooldData.findIndex((i) => i.nid === nid)
+
+                if (ngetId === -1) {
+                    return createResponse({ res, nstatusCode: 404, sisMessage: 'User not found !' })
+                }
+
+                onewData.nid = nid
+                onewData.ncreatedAt = ooldData[ngetId].ncreatedAt
+                onewData.nupdatedAt = date()
+
+                ooldData[ngetId] = { ...ooldData[ngetId], ...onewData }
+
+                await writeFile('data.json', JSON.stringify(ooldData))
+
+                emitter.emit('itemUpdated', ooldData[ngetId])
+                return createResponse({ res, nstatusCode: 200, sisMessage: 'Item updated successfully !' });
+            }
+            catch (err) {
+                console.log(err.message)
+                if (err) {
+                    if (err.code === 'ENOENT') {
+                        return createResponse({ res, nstatusCode: 404, bisError: 'File not found !' });
                     }
-                    emitter.emit('itemUpdated')
-                    res.writeHead(201,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'message':'Data updated successfully'}))
-                })
-            })
+                    else {
+                        return createResponse({ res, nstatusCode: 500, bisError: 'Internal server error !' });
+                    }
+                }
+            }
         })
     }
-    catch(err){
+    catch (err) {
         console.log(err.message)
+        return createResponse({ res, nstatusCode: 500, bisError: err.message });
     }
 }
 
-function deleteData(req,res,id){
-    try{
-    
-        if(!uuidValidate(id)){
-            res.writeHead(400,{'content-type':'application/json'})
-            return res.end(JSON.stringify({'message':'Invalid id!'}))         
+async function deleteData(req, res, nid) {
+    try {
+
+        if(!validateId(nid)){
+            return createResponse({ res, nstatusCode: 400, sisMessage: 'Invalid Id !' })
         }
 
-        fs.readFile('data.json',(err,data)=>{
-            if(err){
-                if(err.code==='ENOENT'){
-                    res.writeHead(404,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'File not found'}))
-                    return
+        try {
+        
+            let odata = await readFile('data.json', 'utf-8')
+            let ooldData = JSON.parse(odata)
+
+            const ngetId = ooldData.findIndex((i) => i.nid === nid)
+
+            if (ngetId === -1) {
+                return createResponse({ res, nstatusCode: 404, sisMessage: 'Data not found !' })
+            }
+
+            const odeletedData = ooldData.filter((i) => i.nid === nid)
+            ooldData = ooldData.filter((i) => i.nid !== nid)
+
+            await writeFile('data.json', JSON.stringify(ooldData))
+            emitter.emit('itemDeletd', odeletedData)
+            return createResponse({ res, nstatusCode: 200, sisMessage: 'Item deleted successfully !' });
+        }
+        catch (err) {
+            console.log(err.message)
+            if (err) {
+                if (err.code === 'ENOENT') {
+                    createResponse({ res, nstatusCode: 404, bisError: 'File not found !' });
                 }
-                else{
-                    res.writeHead(500,{'content-type':'application/json'})
-                    res.end(JSON.stringify({'error':'Internal server error'}))
-                    return
+                else {
+                    createResponse({ res, nstatusCode: 500, bisError: 'Internal server error !' });
                 }
             }
-    
-            let oldData=Array.from(JSON.parse(data.toString('utf-8')))
-    
-            oldData=oldData.filter((i)=>i.id!==id)
-                
-            fs.writeFile('data.json',JSON.stringify(oldData),(err)=>{
-                if(err){
-                    if(err.code==='ENOENT'){
-                        res.writeHead(404,{'content-type':'application/json'})
-                        res.end(JSON.stringify({'error':'File not found'}))
-                        return
-                    }
-                    else{
-                        res.writeHead(500,{'content-type':'application/json'})
-                        res.end(JSON.stringify({'error':'Internal server error'}))
-                        return
-                    }
-                }
-                emitter.emit('itemDeletd')
-                res.writeHead(201,{'content-type':'application/json'})
-                res.end(JSON.stringify({'message':'Data deleted successfully'}))
-            })
-        })
+        }
     }
-    catch(err){
+    catch (err) {
         console.log(err.message)
+        return createResponse({ res, nstatusCode: 500, bisError: err.message });
     }
 }
 
-module.exports={getAllData,getDataById,addData,updateData,deleteData}
+
+
+module.exports = { getAllData, getDataById, addData, updateData, deleteData }
