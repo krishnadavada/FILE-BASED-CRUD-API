@@ -1,12 +1,20 @@
 const {defaultFileServe,staticFileServe}=require('../controllers/Public.controller')
 
 function publicRoutes(req,res){
-    if(req.url==='/public' && req.method==='GET'){
-        return defaultFileServe(req,res)
+    try{
+        switch(true){
+            case req.url==='/public' && req.method==='GET' :
+                return defaultFileServe(req,res)
+            break
+        
+            case req.url.split('/')[1]==='public' && req.method==='GET' :
+                return staticFileServe(req,res)
+            break
+        }
     }
-
-    else if(req.url.split('/')[1]==='public' && req.method==='GET'){
-        return staticFileServe(req,res)
+    catch(err){
+        console.log(err.message)
+        return createResponse({ res, nstatusCode: 500, bisError: err.message });
     }
 }
 

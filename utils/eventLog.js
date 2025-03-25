@@ -2,16 +2,16 @@ const EventEmitter = require('node:events')
 
 const emitter=new EventEmitter()
 
-emitter.on('itemCreated',()=>{
-    console.log('Item created successfully!')
+emitter.on('itemCreated',(odata)=>{
+    console.log({"message":"Item created successfully!","addedData":odata})
 })
 
-emitter.on('itemUpdated',()=>{
-    console.log('Item updated successfully!')
+emitter.on('itemUpdated',(odata)=>{
+    console.log({"message":"Item updated successfully!","updatedData":odata})
 })
 
-emitter.on('itemDeletd',()=>{
-    console.log('Item deleted successfully!')
+emitter.on('itemDeletd',(odata)=>{
+    console.log({"message":"Item deleted successfully!","deleteData":odata})
 })
 
 module.exports=emitter

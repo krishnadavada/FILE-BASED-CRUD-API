@@ -2,28 +2,43 @@ const {getAllData,getDataById,addData,updateData,deleteData}=require('../control
 
 function dataRoutes(req,res){
 
-    let url=req.url.split('/')
+    try{
+        let surl=req.url.split('/')
 
-    if(req.url==='/api/data' && req.method==='GET'){
-        return getAllData(req,res)
+        switch(true){
+    
+            case req.url==='/api/data' && req.method==='GET' :
+                return getAllData(req,res)
+            break
+            
+        
+            case surl[1]==='api' && surl[2]==='data' && req.method==='GET' :
+                return getDataById(req,res,surl[3])
+            break
+            
+        
+            case req.url==='/api/data' && req.method==='POST' :
+                return addData(req,res)
+            break
+            
+        
+            case surl[1]==='api' && surl[2]==='data' && req.method==='PUT' :
+                return updateData(req,res,surl[3])
+            break
+            
+        
+            case surl[1]==='api' && surl[2]==='data' && req.method==='DELETE' :
+                return deleteData(req,res,surl[3])
+            break
+
+            default :
+                res.status(404).json({message:'Route Not Found'})
+        }
     }
-
-    else if(url[1]==='api' && url[2]==='data' && req.method==='GET'){
-        return getDataById(req,res,url[3])
+    catch(err){
+        console.log(err.message)
+        return createResponse({ res, nstatusCode: 500, bisError: err.message });
     }
-
-    else if(req.url==='/api/data' && req.method==='POST'){
-        return addData(req,res)
-    }
-
-    else if(url[1]==='api' && url[2]==='data' && req.method==='PUT'){
-        return updateData(req,res,url[3])
-    }
-
-    else if(url[1]==='api' && url[2]==='data' && req.method==='DELETE'){
-        return deleteData(req,res,url[3])
-    }
-
 }
 
 module.exports=dataRoutes
