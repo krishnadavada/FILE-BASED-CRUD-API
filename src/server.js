@@ -10,32 +10,29 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
+//middleware for error
 app.use((err, req, res, next) => {
-  return createResponse({
-    res,
-    nStatusCode: err.statusCode,
-    bIsError: err.message,
-  });
+  return res.status(err.status).json({message:err.message})
 });
 
+// middleware for data routes
 app.use("/api/data", dataRoute);
+
+//middleware for serve static files
 app.use("/public", express.static("src/public"));
 
-app.get("/health", (req, res) =>
-  res.status(200).send({ status: "up", timeStamp: new Date() })
-);
+//health check
+app.get("/health", (req, res) => {
+  return createResponse(res, 'OK', 'server_up');
+});
 
 app.all("/*", (req, res) => {
-  return createResponse({
-    res,
-    nStatusCode: 404,
-    bIsError: "Route not found !",
-  });
+  return createResponse(res, 'NotFound', 'not_found', 'Route');
 });
 
 app.listen(port, (err) => {
   if (err) {
-    console.log(err.message);
+    console.log(err);
   } else {
     console.log(`server is listening on http://localhost:${port}`);
   }

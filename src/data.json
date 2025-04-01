@@ -3,36 +3,27 @@
         "sName": "shirt",
         "nQuantity": 1,
         "nPrice": 1000,
-        "sStatus": "not available",
+        "sStatus": "unavailable",
         "iId": "657fcae0-5835-45c8-9523-a7f3ca4848de",
-        "nCreatedAt": "25/3/2025",
-        "nUpdatedAt": "25/3/2025"
-    },
-    {
-        "sName": "pencil",
-        "nQuantity": 2,
-        "nPrice": 20,
-        "sStatus": "available",
-        "iId": "72b1ca39-d6bc-4d9e-826f-f4d95763e027",
-        "nCreatedAt": "25/3/2025",
-        "nUpdatedAt": "28/3/2025"
-    },
-    {
-        "sName": "glass",
-        "nQuantity": 1,
-        "sStatus": "available",
-        "nPrice": "50",
-        "iId": "fee82b7f-1b3b-49cc-8559-c145a02d8f6e",
-        "nCreatedAt": "25/3/2025",
-        "nUpdatedAt": "28/3/2025"
+        "dCreatedAt": "25/3/2025",
+        "dUpdatedAt": "28/3/2025"
     },
     {
         "sName": "book",
         "nQuantity": 1,
         "sStatus": "available",
-        "nPrice": 90,
+        "nPrice": 900,
         "iId": "eccd3159-dfb3-41d8-83d7-204f156bb9b7",
-        "nCreatedAt": "28/3/2025",
-        "nUpdatedAt": "28/3/2025"
+        "dCreatedAt": "28/3/2025",
+        "dUpdatedAt": "28/3/2025"
+    },
+    {
+        "sName": "calculator",
+        "nPrice": 90,
+        "sStatus": "Unavailable",
+        "nQuantity": 1,
+        "iId": "d08be2ee-b009-4424-b7d9-a0e9074adc07",
+        "dCreatedAt": "1/4/2025",
+        "dUpdatedAt": "1/4/2025"
     }
 ]
