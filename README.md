@@ -2,6 +2,9 @@
 
 ## **Project: File-Based CRUD API with Event Logging**
 
+## **Postman Documnet Link :** 
+### https://documenter.getpostman.com/view/43381736/2sB2cPi54C
+
 ### **Project Description**
 
 This project aims to create a basic **CRUD (Create, Read, Update, Delete)** API using Node.js. The API will interact with a JSON file to store and manage data. Additionally, the application will use **Event Emitters** to log actions (like creating, updating, or deleting data) and an **HTTP server** to handle API requests.
