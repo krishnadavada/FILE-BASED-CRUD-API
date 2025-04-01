@@ -1,61 +1,35 @@
-const { createResponse } = require("../helpers/response");
-const { validate: uuidValidate } = require("uuid");
+const { param,body,validationResult }=require("express-validator");
+const{status}=require("../utils/enums");
 
-function validateId(req, res, next) {
-  if (!uuidValidate(req.params.iId)) {
-    return createResponse({
-      res,
-      nStatusCode: 400,
-      sIsMessage: "Invalid Id !",
-    });
+const aIdValidator=[
+  param('iId','Id is required !').notEmpty(),
+  param('iId','Inavlid Id !').isUUID()
+]
+
+const aDataValidator=[
+  body('sName','Name is required !').notEmpty(),
+  body('sName','The minimum Name length should be three characters.').isLength({min:3}),
+  body('sName','Invalid data type of name !').isString(),
+
+  body('nQuantity','Quantity is required !').notEmpty(),
+  body('nQuantity','Quantity should be not 0 and positive number !').isInt({min:1}),
+  body('nQuantity','Invalid data type of quantity !').isInt(),
+
+  body('nPrice','Price is required !').notEmpty(),
+  body('nPrice','Price should be not 0 and positive number !').isInt({min:1}),
+  body('nPrice','Invalid data type of price !').isInt(),
+
+  body('sStatus','Status is required !').notEmpty(),
+  body('sStatus','Invalid data type of status !').isString(),
+  body('sStatus','Invalis status !').isIn(Object.keys(status))
+]
+
+function validateReq(req,res,next){
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({massage : errors.array()});
   }
   next();
 }
 
-function validateData(req, res, next) {
-  if (
-    !req.body.sName ||
-    !req.body.nQuantity ||
-    !req.body.nPrice ||
-    !req.body.sStatus
-  ) {
-    return createResponse({
-      res,
-      nStatusCode: 400,
-      sIsMessage: "Invalid data!",
-    });
-  } else if (typeof req.body.sName !== "string") {
-    return createResponse({
-      res,
-      nStatusCode: 400,
-      sIsMessage: "Invalid data type of name!",
-    });
-  } else if (typeof req.body.nQuantity !== "number") {
-    return createResponse({
-      res,
-      nStatusCode: 400,
-      sIsMessage: "Invalid data type of quantity!",
-    });
-  } else if (typeof req.body.nPrice !== "number") {
-    return createResponse({
-      res,
-      nStatusCode: 400,
-      sIsMessage: "Invalid data type of price!",
-    });
-  } else if (typeof req.body.sStatus !== "string") {
-    return createResponse({
-      res,
-      nStatusCode: 400,
-      sIsMessage: "Invalid data type of status!",
-    });
-  } else if (req.body.nQuantity < 0 || req.body.nPrice < 0) {
-    return createResponse({
-      res,
-      nStatusCode: 400,
-      sIsMessage: "Invalid quantity or price!",
-    });
-  }
-  next();
-}
-
-module.exports = { validateId, validateData };
+module.exports = { aIdValidator,aDataValidator,validateReq };
